@@ -3,5 +3,6 @@
   <PropertyGroup>
     <SelectedDevice>Nexus_6_API_27_1440</SelectedDevice>
     <DefaultDevice>Nexus_6_API_27_1440</DefaultDevice>
+    <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
 </Project>
