@@ -17,7 +17,7 @@ namespace DamMobileApp
         {
             InitializeComponent();
 
-            double MaxX = 200;
+            double MaxX = 40;
             double MinX = 0;
             double MaxY = 200;
             double MinY = 0;
@@ -46,8 +46,8 @@ namespace DamMobileApp
             series.Points.Add(new DataPoint(30, 120));
             series.Points.Add(new DataPoint(40, 80));
 
-            model.Axes.Add(new LinearAxis() { Position = AxisPosition.Bottom, Minimum = 0, Maximum = 40 });
-            model.Axes.Add(new LinearAxis() { Position = AxisPosition.Left, Minimum = 0, Maximum = 150 });
+            model.Axes.Add(new LinearAxis() { Position = AxisPosition.Bottom, Minimum = MinX, Maximum = MaxX, IsPanEnabled = false, IsZoomEnabled = false });
+            model.Axes.Add(new LinearAxis() { Position = AxisPosition.Left, Minimum = MinY, Maximum = MaxY, IsPanEnabled = false, IsZoomEnabled = false });
             model.Series.Add(series);
             model.Series.Add(alertLine);
 
