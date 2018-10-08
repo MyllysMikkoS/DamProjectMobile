@@ -4,11 +4,116 @@
              xmlns:local="clr-namespace:DamMobileApp"
              x:Class="DamMobileApp.MainPage">
 
-    <StackLayout>
-        <!-- Place new controls here -->
-        <Label Text="Go to work!" 
-           HorizontalOptions="Center"
-           VerticalOptions="CenterAndExpand" />
-    </StackLayout>
-
+    <RelativeLayout
+        x:Name="MainLayout"
+        HorizontalOptions="Fill"
+        VerticalOptions="Fill">
+        <RelativeLayout
+            x:Name="PlotLayout"
+            HorizontalOptions="Fill"
+            RelativeLayout.HeightConstraint="{ConstraintExpression
+                Type=RelativeToParent, Property=Height, Factor=0.7}"
+            RelativeLayout.WidthConstraint="{ConstraintExpression
+                Type=RelativeToParent, Property=Width, Factor=1.0}">
+        </RelativeLayout>
+        <RelativeLayout
+            x:Name="DatePickerLayout"
+            HorizontalOptions="Fill"
+            RelativeLayout.HeightConstraint="{ConstraintExpression
+                Type=RelativeToParent, Property=Height, Factor=0.2}"
+            RelativeLayout.WidthConstraint="{ConstraintExpression
+                Type=RelativeToParent, Property=Width, Factor=1.0}"
+            RelativeLayout.YConstraint="{ConstraintExpression
+                Type=RelativeToParent, Property=Height, Factor=0.7}">
+            <RelativeLayout x:Name="StartDateLayout"
+                            RelativeLayout.HeightConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Height, Factor=1.0}"
+                            RelativeLayout.WidthConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Width, Factor=0.4}">
+                <DatePicker x:Name="StartDatePicker"
+                            RelativeLayout.HeightConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Height, Factor=0.5}"
+                            RelativeLayout.WidthConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Width, Factor=1.0}">
+                </DatePicker>
+                <TimePicker x:Name="StartTimePicker"
+                            RelativeLayout.HeightConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Height, Factor=0.5}"
+                            RelativeLayout.WidthConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Width, Factor=1.0}"
+                            RelativeLayout.YConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Height, Factor=0.5}">
+                </TimePicker>
+            </RelativeLayout>
+            <Label x:Name="LineLabel"
+                   FontSize="Large"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"
+                   Text="-"
+                   RelativeLayout.HeightConstraint="{ConstraintExpression
+                       Type=RelativeToParent, Property=Height, Factor=1.0}"
+                   RelativeLayout.WidthConstraint="{ConstraintExpression
+                       Type=RelativeToParent, Property=Width, Factor=0.2}"
+                   RelativeLayout.XConstraint="{ConstraintExpression
+                       Type=RelativeToParent, Property=Width, Factor=0.4}">
+            </Label>
+            <RelativeLayout x:Name="EndDateLayout"
+                             RelativeLayout.HeightConstraint="{ConstraintExpression
+                                 Type=RelativeToParent, Property=Height, Factor=1.0}"
+                             RelativeLayout.WidthConstraint="{ConstraintExpression
+                                 Type=RelativeToParent, Property=Width, Factor=0.4}"
+                             RelativeLayout.XConstraint="{ConstraintExpression
+                                 Type=RelativeToParent, Property=Width, Factor=0.6}">
+                <DatePicker x:Name="EndDatePicker"
+                            RelativeLayout.HeightConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Height, Factor=0.5}"
+                            RelativeLayout.WidthConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Width, Factor=1.0}">
+                </DatePicker>
+                <TimePicker x:Name="EndTimePicker"
+                            RelativeLayout.HeightConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Height, Factor=0.5}"
+                            RelativeLayout.WidthConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Width, Factor=1.0}"
+                            RelativeLayout.YConstraint="{ConstraintExpression
+                                Type=RelativeToParent, Property=Height, Factor=0.5}">
+                </TimePicker>
+            </RelativeLayout>
+        </RelativeLayout>
+        <RelativeLayout
+            x:Name="ButtonsLayout"
+            HorizontalOptions="Fill"
+            RelativeLayout.HeightConstraint="{ConstraintExpression
+                Type=RelativeToParent, Property=Height, Factor=0.1}"
+            RelativeLayout.WidthConstraint="{ConstraintExpression
+                Type=RelativeToParent, Property=Width, Factor=1.0}"
+            RelativeLayout.YConstraint="{ConstraintExpression
+                Type=RelativeToParent, Property=Height, Factor=0.9}">
+            <Button x:Name="WaterLevelButton"
+                    Text="WATER LEVEL"
+                    CornerRadius="0"
+                    BackgroundColor="White"
+                    BorderColor="Gray"
+                    BorderWidth="5"
+                    RelativeLayout.HeightConstraint="{ConstraintExpression
+                        Type=RelativeToParent, Property=Height, Factor=1.0}"
+                    RelativeLayout.WidthConstraint="{ConstraintExpression
+                        Type=RelativeToParent, Property=Width, Factor=0.5}">
+            </Button>
+            <Button x:Name="WaterFlowButton"
+                    Text="WATER FLOW"
+                    CornerRadius="0"
+                    BackgroundColor="White"
+                    BorderColor="Gray"
+                    BorderWidth="5"
+                    RelativeLayout.HeightConstraint="{ConstraintExpression
+                        Type=RelativeToParent, Property=Height, Factor=1.0}"
+                    RelativeLayout.WidthConstraint="{ConstraintExpression
+                        Type=RelativeToParent, Property=Width, Factor=0.5}"
+                    RelativeLayout.XConstraint="{ConstraintExpression
+                        Type=RelativeToParent, Property=Width, Factor=0.5}">
+            </Button>
+        </RelativeLayout>
+    </RelativeLayout>
+    
 </ContentPage>
