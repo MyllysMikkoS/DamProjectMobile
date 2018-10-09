@@ -20,7 +20,7 @@
             x:Name="DatePickerLayout"
             HorizontalOptions="Fill"
             RelativeLayout.HeightConstraint="{ConstraintExpression
-                Type=RelativeToParent, Property=Height, Factor=0.2}"
+                Type=RelativeToParent, Property=Height, Factor=0.15}"
             RelativeLayout.WidthConstraint="{ConstraintExpression
                 Type=RelativeToParent, Property=Width, Factor=1.0}"
             RelativeLayout.YConstraint="{ConstraintExpression
@@ -29,21 +29,15 @@
                             RelativeLayout.HeightConstraint="{ConstraintExpression
                                 Type=RelativeToParent, Property=Height, Factor=1.0}"
                             RelativeLayout.WidthConstraint="{ConstraintExpression
-                                Type=RelativeToParent, Property=Width, Factor=0.4}">
+                                Type=RelativeToParent, Property=Width, Factor=0.4}"
+                            RelativeLayout.XConstraint="{ConstraintExpression
+                                 Type=RelativeToParent, Property=Width, Factor=0.05}">
                 <DatePicker x:Name="StartDatePicker"
                             RelativeLayout.HeightConstraint="{ConstraintExpression
-                                Type=RelativeToParent, Property=Height, Factor=0.5}"
+                                Type=RelativeToParent, Property=Height, Factor=1.0}"
                             RelativeLayout.WidthConstraint="{ConstraintExpression
                                 Type=RelativeToParent, Property=Width, Factor=1.0}">
                 </DatePicker>
-                <TimePicker x:Name="StartTimePicker"
-                            RelativeLayout.HeightConstraint="{ConstraintExpression
-                                Type=RelativeToParent, Property=Height, Factor=0.5}"
-                            RelativeLayout.WidthConstraint="{ConstraintExpression
-                                Type=RelativeToParent, Property=Width, Factor=1.0}"
-                            RelativeLayout.YConstraint="{ConstraintExpression
-                                Type=RelativeToParent, Property=Height, Factor=0.5}">
-                </TimePicker>
             </RelativeLayout>
             <Label x:Name="LineLabel"
                    FontSize="Large"
@@ -53,9 +47,9 @@
                    RelativeLayout.HeightConstraint="{ConstraintExpression
                        Type=RelativeToParent, Property=Height, Factor=1.0}"
                    RelativeLayout.WidthConstraint="{ConstraintExpression
-                       Type=RelativeToParent, Property=Width, Factor=0.2}"
+                       Type=RelativeToParent, Property=Width, Factor=0.1}"
                    RelativeLayout.XConstraint="{ConstraintExpression
-                       Type=RelativeToParent, Property=Width, Factor=0.4}">
+                       Type=RelativeToParent, Property=Width, Factor=0.45}">
             </Label>
             <RelativeLayout x:Name="EndDateLayout"
                              RelativeLayout.HeightConstraint="{ConstraintExpression
@@ -63,32 +57,24 @@
                              RelativeLayout.WidthConstraint="{ConstraintExpression
                                  Type=RelativeToParent, Property=Width, Factor=0.4}"
                              RelativeLayout.XConstraint="{ConstraintExpression
-                                 Type=RelativeToParent, Property=Width, Factor=0.6}">
+                                 Type=RelativeToParent, Property=Width, Factor=0.55}">
                 <DatePicker x:Name="EndDatePicker"
                             RelativeLayout.HeightConstraint="{ConstraintExpression
-                                Type=RelativeToParent, Property=Height, Factor=0.5}"
+                                Type=RelativeToParent, Property=Height, Factor=1.0}"
                             RelativeLayout.WidthConstraint="{ConstraintExpression
                                 Type=RelativeToParent, Property=Width, Factor=1.0}">
                 </DatePicker>
-                <TimePicker x:Name="EndTimePicker"
-                            RelativeLayout.HeightConstraint="{ConstraintExpression
-                                Type=RelativeToParent, Property=Height, Factor=0.5}"
-                            RelativeLayout.WidthConstraint="{ConstraintExpression
-                                Type=RelativeToParent, Property=Width, Factor=1.0}"
-                            RelativeLayout.YConstraint="{ConstraintExpression
-                                Type=RelativeToParent, Property=Height, Factor=0.5}">
-                </TimePicker>
             </RelativeLayout>
         </RelativeLayout>
         <RelativeLayout
             x:Name="ButtonsLayout"
             HorizontalOptions="Fill"
             RelativeLayout.HeightConstraint="{ConstraintExpression
-                Type=RelativeToParent, Property=Height, Factor=0.1}"
+                Type=RelativeToParent, Property=Height, Factor=0.15}"
             RelativeLayout.WidthConstraint="{ConstraintExpression
                 Type=RelativeToParent, Property=Width, Factor=1.0}"
             RelativeLayout.YConstraint="{ConstraintExpression
-                Type=RelativeToParent, Property=Height, Factor=0.9}">
+                Type=RelativeToParent, Property=Height, Factor=0.85}">
             <Button x:Name="WaterLevelButton"
                     Text="WATER LEVEL"
                     CornerRadius="0"
