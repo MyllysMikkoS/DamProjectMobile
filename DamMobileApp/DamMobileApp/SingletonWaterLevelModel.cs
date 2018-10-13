@@ -1,28 +1,20 @@
-﻿using OxyPlot.Xamarin.Forms;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace DamMobileApp
 {
-    public enum PlotType
+    class SingletonWaterLevelModel : OxyPlot.PlotModel
     {
-        WATERLEVEL,
-        WATERFLOW
-    }
-
-    public sealed class SingletonPlot : PlotView
-    {
-        private static SingletonPlot instance = null;
+        private static SingletonWaterLevelModel instance = null;
         private static readonly object padlock = new object();
-        public PlotType Type { get; set; }
 
-        SingletonPlot()
+        SingletonWaterLevelModel()
         {
-            Type = PlotType.WATERFLOW;
+            Title = "Water level";
         }
 
-        public static SingletonPlot Instance
+        public static SingletonWaterLevelModel Instance
         {
             get
             {
@@ -30,7 +22,7 @@ namespace DamMobileApp
                 {
                     if (instance == null)
                     {
-                        instance = new SingletonPlot();
+                        instance = new SingletonWaterLevelModel();
                     }
                     return instance;
                 }
