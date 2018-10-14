@@ -11,8 +11,6 @@ namespace DamMobileApp
     {
         private static SingletonWaterFlowModel instance = null;
         private static readonly object padlock = new object();
-        public DateTime MinDate { get; set; } = new DateTime(1111, 1, 1);
-        public DateTime MaxDate { get; set; } = new DateTime(9999, 9, 9);
         public double MinFlow = 0;
         public double MaxFlow = 100;
         public double AlertLineValue = 70;
@@ -51,12 +49,12 @@ namespace DamMobileApp
 
         public double GetMinDateInDouble()
         {
-            return DateTimeAxis.ToDouble(MinDate);
+            return DateTimeAxis.ToDouble(GlobalDateLimits.Instance.StartDate);
         }
 
         public double GetMaxDateInDouble()
         {
-            return DateTimeAxis.ToDouble(MaxDate);
+            return DateTimeAxis.ToDouble(GlobalDateLimits.Instance.EndDate);
         }
 
         public void SetSeries(List<WaterFlowData> list)

@@ -8,5 +8,11 @@ namespace DamMobileApp
     {
         public DateTime Timestamp { get; set; }
         public float WaterLevel { get; set; }
+
+        public WaterLevelData(DateTime stamp, float level)
+        {
+            Timestamp = stamp;
+            WaterLevel = level;
+        }
     }
 }

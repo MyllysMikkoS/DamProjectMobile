@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DamMobileApp
 {
-    class SingletonWaterLevelDataList
+    class SingletonWaterLevelDataList : List<WaterLevelData>
     {
         private static SingletonWaterLevelDataList instance = null;
         private static readonly object padlock = new object();
