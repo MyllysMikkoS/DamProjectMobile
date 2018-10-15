@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
@@ -35,6 +36,32 @@ namespace DamMobileApp
             EndDatePicker.DateSelected += EndDatePicker_DateSelected;
         }
 
+        protected override void OnAppearing()
+        {
+            // Check alert
+            CheckIfAlertIsOn();
+        }
+	
+        /// <summary>
+        /// Returns content on success, "error" on fail
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
+        public async Task<string> GetRequestAsync(string uri)
+        {
+            try
+            {
+                var httpClient = new HttpClient();
+                var content = await httpClient.GetStringAsync(uri);
+                return content;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Get request error: " + e);
+                return "error";
+            }
+        }
+
         private void EndDatePicker_DateSelected(object sender, DateChangedEventArgs e)
         {
             GlobalDateLimits.Instance.EndDate = EndDatePicker.Date;
@@ -59,6 +86,17 @@ namespace DamMobileApp
                 SingletonWaterLevelModel.Instance.SetSeries(SingletonWaterLevelDataList.Instance);
             else
                 SingletonWaterFlowModel.Instance.SetSeries(SingletonWaterFlowDataList.Instance);
+        }
+
+        public void CheckIfAlertIsOn()
+        {
+            // Do the check
+            if (true)
+            {
+                // Display alert
+                Debug.WriteLine("DISPLAYING ALERT");
+                DisplayAlert("Alert!", "The water level has reached alert level.", "OK");
+            }
         }
 
         public void CreatePlot()
