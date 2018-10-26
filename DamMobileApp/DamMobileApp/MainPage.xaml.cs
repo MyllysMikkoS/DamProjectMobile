@@ -1,16 +1,14 @@
-﻿using OxyPlot;
-using OxyPlot.Axes;
-using OxyPlot.Series;
-using OxyPlot.Xamarin.Forms;
+﻿using GraphQL.Client;
+using GraphQL.Common.Request;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+
 
 namespace DamMobileApp
 {
@@ -20,86 +18,42 @@ namespace DamMobileApp
         {
             InitializeComponent();
 
-            // Update date limits
-            InitDatePickers();
-
-            // Create plot
-            CreatePlot();
-
-            // Add plot to the page
-            AddPlotToPage();
-
-            // Create onclick events for buttons and datepickers
-            WaterFlowButton.Clicked += WaterFlowButtonPressed;
-            WaterLevelButton.Clicked += WaterLevelButtonPressed;
-            StartDatePicker.DateSelected += StartDatePicker_DateSelected;
-            EndDatePicker.DateSelected += EndDatePicker_DateSelected;
-        }
-
-        protected override void OnAppearing()
-        {
-            // Check alert
-            CheckIfAlertIsOn();
-        }
-	
-        /// <summary>
-        /// Returns content on success, "error" on fail
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        public async Task<string> GetRequestAsync(string uri)
-        {
-            try
-            {
-                var httpClient = new HttpClient();
-                var content = await httpClient.GetStringAsync(uri);
-                return content;
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine("Get request error: " + e);
-                return "error";
-            }
+            // Get water data on app start
+            Task.Run(async () => await GetAllWaterDataOnAppStart());
         }
 
         private void EndDatePicker_DateSelected(object sender, DateChangedEventArgs e)
         {
-            GlobalDateLimits.Instance.EndDate = EndDatePicker.Date;
-            Debug.WriteLine("END DATE SELECTED: " + e.NewDate.ToString());
-            StartDatePicker.MaximumDate = GlobalDateLimits.Instance.EndDate;
-
-            // Update plot
-            if (SingletonPlot.Instance.Type == PlotType.WATERLEVEL)
-                SingletonWaterLevelModel.Instance.SetSeries(SingletonWaterLevelDataList.Instance);
-            else
-                SingletonWaterFlowModel.Instance.SetSeries(SingletonWaterFlowDataList.Instance);
+            Task.Run(async () => { await GetWaterData(StartDatePicker.Date, e.NewDate); });
         }
 
         private void StartDatePicker_DateSelected(object sender, DateChangedEventArgs e)
         {
-            GlobalDateLimits.Instance.StartDate = StartDatePicker.Date;
-            Debug.WriteLine("START DATE SELECTED: " + e.NewDate.ToString());
-            EndDatePicker.MinimumDate = GlobalDateLimits.Instance.StartDate;
-
-            // Update plot
-            if (SingletonPlot.Instance.Type == PlotType.WATERLEVEL)
-                SingletonWaterLevelModel.Instance.SetSeries(SingletonWaterLevelDataList.Instance);
-            else
-                SingletonWaterFlowModel.Instance.SetSeries(SingletonWaterFlowDataList.Instance);
+            Task.Run(async () => { await GetWaterData(e.NewDate, EndDatePicker.Date); });
         }
 
         public void CheckIfAlertIsOn()
         {
             // Do the check
-            if (true)
+            if (SingletonWaterLevelDataList.Instance.OrderByDescending(x => x.Timestamp).First().WaterLevel 
+                >= SingletonWaterLevelModel.Instance.AlertLineValue)
             {
                 // Display alert
                 Debug.WriteLine("DISPLAYING ALERT");
-                DisplayAlert("Alert!", "The water level has reached alert level.", "OK");
+                DisplayAlert("Alert!", "The water level rised over the alert level.", "OK");
             }
         }
 
         public void CreatePlot()
+        {
+            // Get PlotModel according to plotviewtype
+            if (SingletonPlot.Instance.Type == PlotType.WATERLEVEL)
+                SingletonPlot.Instance.Model = SingletonWaterLevelModel.Instance;
+            else
+                SingletonPlot.Instance.Model = SingletonWaterFlowModel.Instance;
+        }
+
+        public void UpdatePlot()
         {
             // Get PlotModel according to plotviewtype
             if (SingletonPlot.Instance.Type == PlotType.WATERLEVEL)
@@ -115,39 +69,215 @@ namespace DamMobileApp
             PlotLayout.Children.Add(SingletonPlot.Instance, Constraint.Constant(0));
         }
 
-        public void InitDatePickers()
+        public void UpdateDatePickers()
         {
+            DateTime newestFlowDate = SingletonWaterFlowDataList.Instance.OrderByDescending(x => x.Timestamp).First().Timestamp;
+            DateTime oldestFlowDate = SingletonWaterFlowDataList.Instance.OrderByDescending(x => x.Timestamp).Last().Timestamp;
+            DateTime newestLevelDate = SingletonWaterLevelDataList.Instance.OrderByDescending(x => x.Timestamp).First().Timestamp;
+            DateTime oldestLevelDate = SingletonWaterLevelDataList.Instance.OrderByDescending(x => x.Timestamp).Last().Timestamp;
+            DateTime start;
+            DateTime end;
+
+            // Check newest date of flows and levels
+            if (newestFlowDate > newestLevelDate) end = newestFlowDate;
+            else end = newestLevelDate;
+
+            // Check oldest date of flows and levels
+            if (oldestFlowDate < oldestLevelDate) start = oldestFlowDate;
+            else start = oldestLevelDate;
+
+            GlobalDateLimits.Instance.StartDate = start;
+            GlobalDateLimits.Instance.EndDate = end;
+
+            // Set maximum date according to current time
+            EndDatePicker.MaximumDate = DateTime.UtcNow;
+
+            // Set current values
             StartDatePicker.Date = GlobalDateLimits.Instance.StartDate;
             EndDatePicker.Date = GlobalDateLimits.Instance.EndDate;
 
-            StartDatePicker.MaximumDate = GlobalDateLimits.Instance.EndDate;
-            EndDatePicker.MinimumDate = GlobalDateLimits.Instance.StartDate;
+            DateTime StartDateMax = new DateTime(end.Year, end.Month, end.Day);
+            DateTime EndDateMin = new DateTime(start.Year, start.Month, start.Day);
+            StartDatePicker.MaximumDate = StartDateMax;
+            EndDatePicker.MinimumDate = EndDateMin;
         }
 
-        public async void WaterFlowButtonPressed(object sender, EventArgs e)
+        public void UpdateDatePickersOnAppStart()
         {
-            await GetWaterFlowData();
+            DateTime newestFlowDate = SingletonWaterFlowDataList.Instance.OrderByDescending(x => x.Timestamp).First().Timestamp;
+            DateTime oldestFlowDate = SingletonWaterFlowDataList.Instance.OrderByDescending(x => x.Timestamp).Last().Timestamp;
+            DateTime newestLevelDate = SingletonWaterLevelDataList.Instance.OrderByDescending(x => x.Timestamp).First().Timestamp;
+            DateTime oldestLevelDate = SingletonWaterLevelDataList.Instance.OrderByDescending(x => x.Timestamp).Last().Timestamp;
+            DateTime start;
+            DateTime end;
+
+            // Check newest date of flows and levels
+            if (newestFlowDate > newestLevelDate) end = newestFlowDate;
+            else end = newestLevelDate;
+
+            // Check oldest date of flows and levels
+            if (oldestFlowDate < oldestLevelDate) start = oldestFlowDate;
+            else start = oldestLevelDate;
+
+            GlobalDateLimits.Instance.FirstDateInDataBase = start;
+            GlobalDateLimits.Instance.StartDate = start;
+            GlobalDateLimits.Instance.EndDate = end;
+
+            // Set minimum date according to all database data
+            StartDatePicker.MinimumDate = GlobalDateLimits.Instance.FirstDateInDataBase;
+
+            // Set maximum date according to current time
+            EndDatePicker.MaximumDate = DateTime.UtcNow;
+
+            // Set current values
+            StartDatePicker.Date = GlobalDateLimits.Instance.StartDate;
+            EndDatePicker.Date = GlobalDateLimits.Instance.EndDate;
+
+            DateTime StartDateMax = new DateTime(end.Year, end.Month, end.Day);
+            DateTime EndDateMin = new DateTime(start.Year, start.Month, start.Day);
+            StartDatePicker.MaximumDate = StartDateMax;
+            EndDatePicker.MinimumDate = EndDateMin;
         }
 
-        public async void WaterLevelButtonPressed(object sender, EventArgs e)
+        public void WaterFlowButtonPressed(object sender, EventArgs e)
         {
-            await GetWaterLevelData();
+            ShowWaterFlowData();
         }
 
-        public async Task GetWaterFlowData()
+        public void WaterLevelButtonPressed(object sender, EventArgs e)
         {
-            // Get Data
-            await Task.Run(() =>
+            ShowWaterLevelData();
+        }
+
+        public async Task GetAllWaterDataOnAppStart()
+        {
+            Debug.WriteLine("GET DATA ON APP START");
+
+            // Clear old datalists
+            SingletonWaterFlowDataList dataListFlow = SingletonWaterFlowDataList.Instance;
+            SingletonWaterLevelDataList dataListLevel = SingletonWaterLevelDataList.Instance;
+            dataListFlow.Clear();
+            dataListLevel.Clear();
+
+            // Get Data and parse it
+            await Task.Run(async () =>
             {
-                SingletonWaterFlowDataList.Instance.Clear();
-                SingletonWaterFlowDataList.Instance.Add(new WaterFlowData(new DateTime(2000, 2, 2), 10));
-                SingletonWaterFlowDataList.Instance.Add(new WaterFlowData(new DateTime(2007, 3, 3), 20));
-                SingletonWaterFlowDataList.Instance.Add(new WaterFlowData(new DateTime(2013, 4, 4), 90));
-                SingletonWaterFlowDataList.Instance.Add(new WaterFlowData(new DateTime(2018, 5, 5), 50));
-                SingletonWaterFlowDataList.Instance.Add(new WaterFlowData(new DateTime(2004, 5, 5), 40));
-                SingletonWaterFlowDataList.Instance.Add(new WaterFlowData(new DateTime(2015, 7, 7), 60));
+                var WaterFlowDataRequest = new GraphQLRequest
+                {
+                    Query = "{ water_data_query( start_time: \"\" end_time: \"\" ) { flow level timestamp } }"
+                };
+                var graphQLClient = new GraphQLClient("http://api.otpt18-c.course.tamk.cloud/");
+                var graphQLResponse = await graphQLClient.PostAsync(WaterFlowDataRequest);
+                var dynamicData = graphQLResponse.Data["water_data_query"];
+
+                // Add fetched data into datalists
+                foreach (JObject data in dynamicData)
+                {
+                    DateTime time = (new DateTime(1970, 1, 1)).AddMilliseconds(double.Parse(data["timestamp"].ToString()));
+                    dataListFlow.Add(new WaterFlowData(
+                        // Date
+                        time,
+                        // Flow in cubic meter per second
+                        float.Parse(data["flow"].ToString())
+                        ));
+                    dataListLevel.Add(new WaterLevelData(
+                        // Date
+                        time,
+                        // Level in meters
+                        float.Parse(data["level"].ToString()) / 100 // value is in centimeters so dividing by 100
+                        ));
+                }
+            }).ContinueWith((task) => {
+                // Update plots
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    // Update date limits
+                    UpdateDatePickersOnAppStart();
+
+                    SingletonWaterLevelModel.Instance.SetSeries(SingletonWaterLevelDataList.Instance);
+                    SingletonWaterFlowModel.Instance.SetSeries(SingletonWaterFlowDataList.Instance);
+                    CreatePlot();
+
+                    // Add plot to the page
+                    AddPlotToPage();
+
+                    // Create onclick events for buttons and datepickers
+                    WaterFlowButton.Clicked += WaterFlowButtonPressed;
+                    WaterLevelButton.Clicked += WaterLevelButtonPressed;
+                    StartDatePicker.DateSelected += StartDatePicker_DateSelected;
+                    EndDatePicker.DateSelected += EndDatePicker_DateSelected;
+
+                    // Check alert
+                    CheckIfAlertIsOn();
+                });
+            });
+        }
+
+        public async Task GetWaterData(DateTime start, DateTime end)
+        {
+            Debug.WriteLine("GET WATER DATA: " + start.ToString() + " - " + end.ToString());
+
+            DateTime startTime = start;
+            DateTime endTime = end;
+
+            startTime = new DateTime(start.Year, start.Month, start.Day, 0, 0, 0);
+            endTime = new DateTime(end.Year, end.Month, end.Day, 23, 59, 59);
+
+            // Clear old datalists
+            SingletonWaterFlowDataList dataListFlow = SingletonWaterFlowDataList.Instance;
+            SingletonWaterLevelDataList dataListLevel = SingletonWaterLevelDataList.Instance;
+            dataListFlow.Clear();
+            dataListLevel.Clear();
+
+            // Get Data and parse it
+            await Task.Run(async () =>
+            {
+                var WaterFlowDataRequest = new GraphQLRequest
+                {
+                    Query = "{ water_data_query( start_time: \"" 
+                            + startTime.ToString("yyyy-MM-ddTHH:mm:ss") + "\" end_time: \"" 
+                            + endTime.ToString("yyyy-MM-ddTHH:mm:ss") + "\" ) { flow level timestamp } }"
+                };
+                var graphQLClient = new GraphQLClient("http://api.otpt18-c.course.tamk.cloud/");
+                var graphQLResponse = await graphQLClient.PostAsync(WaterFlowDataRequest);
+                var dynamicData = graphQLResponse.Data["water_data_query"];
+
+                // Add fetched data into datalists
+                foreach (JObject data in dynamicData)
+                {
+                    DateTime time = (new DateTime(1970, 1, 1)).AddMilliseconds(double.Parse(data["timestamp"].ToString()));
+                    dataListFlow.Add(new WaterFlowData(
+                        // Date
+                        time,
+                        // Flow in cubic meter per second
+                        float.Parse(data["flow"].ToString())
+                        ));
+                    dataListLevel.Add(new WaterLevelData(
+                        // Date
+                        time,
+                        // Level in meters
+                        float.Parse(data["level"].ToString())/100 // value is in centimeters so dividing by 100
+                        ));
+                }
+            }).ContinueWith((task) => {
+                // Update plots
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    // Update date limits
+                    UpdateDatePickers();
+
+                    SingletonWaterLevelModel.Instance.SetSeries(SingletonWaterLevelDataList.Instance);
+                    SingletonWaterFlowModel.Instance.SetSeries(SingletonWaterFlowDataList.Instance);
+                    CreatePlot();
+                });
             });
 
+            // Update date limits
+            UpdateDatePickers();
+        }
+
+        public void ShowWaterFlowData()
+        {
             // Update UI
             Device.BeginInvokeOnMainThread(() =>
             {
@@ -158,18 +288,8 @@ namespace DamMobileApp
             });
         }
 
-        public async Task GetWaterLevelData()
+        public void ShowWaterLevelData()
         {
-            // Get data
-            await Task.Run(() =>
-            {
-                SingletonWaterLevelDataList.Instance.Clear();
-                SingletonWaterLevelDataList.Instance.Add(new WaterLevelData(new DateTime(2000, 2, 2), 40));
-                SingletonWaterLevelDataList.Instance.Add(new WaterLevelData(new DateTime(2003, 3, 3), 10));
-                SingletonWaterLevelDataList.Instance.Add(new WaterLevelData(new DateTime(2011, 4, 4), 80));
-                SingletonWaterLevelDataList.Instance.Add(new WaterLevelData(new DateTime(2018, 5, 5), 10));
-            });
-
             // Update UI
             Device.BeginInvokeOnMainThread(() =>
             {

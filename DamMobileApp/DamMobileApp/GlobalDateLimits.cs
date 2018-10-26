@@ -8,11 +8,13 @@ namespace DamMobileApp
     {
         private static GlobalDateLimits instance = null;
         private static readonly object padlock = new object();
+        public DateTime FirstDateInDataBase { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
         GlobalDateLimits()
         {
+            FirstDateInDataBase = new DateTime(2000, 1, 1);
             StartDate = new DateTime(2000, 1, 1);
             EndDate = new DateTime(2018, 12, 12);
         }

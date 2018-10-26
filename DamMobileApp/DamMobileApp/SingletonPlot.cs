@@ -19,7 +19,7 @@ namespace DamMobileApp
 
         SingletonPlot()
         {
-            Type = PlotType.WATERFLOW;
+            Type = PlotType.WATERLEVEL;
         }
 
         public static SingletonPlot Instance

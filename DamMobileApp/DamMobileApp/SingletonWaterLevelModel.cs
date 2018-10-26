@@ -3,6 +3,8 @@ using OxyPlot.Axes;
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace DamMobileApp
@@ -11,9 +13,9 @@ namespace DamMobileApp
     {
         private static SingletonWaterLevelModel instance = null;
         private static readonly object padlock = new object();
-        public double MinLevel = 0;
-        public double MaxLevel = 100;
-        public double AlertLineValue = 70;
+        public double MinLevel = 86.50;
+        public double MaxLevel = 87.30;
+        public double AlertLineValue = 87.16;
         public LineSeries AlertLine;
 
         SingletonWaterLevelModel()
@@ -49,12 +51,16 @@ namespace DamMobileApp
 
         public double GetMinDateInDouble()
         {
-            return DateTimeAxis.ToDouble(GlobalDateLimits.Instance.StartDate);
+            DateTime start = GlobalDateLimits.Instance.StartDate;
+            DateTime minDate = new DateTime(start.Year, start.Month, start.Day, 0, 0, 0);
+            return DateTimeAxis.ToDouble(minDate);
         }
 
         public double GetMaxDateInDouble()
         {
-            return DateTimeAxis.ToDouble(GlobalDateLimits.Instance.EndDate);
+            DateTime end = GlobalDateLimits.Instance.EndDate;
+            DateTime maxDate = new DateTime(end.Year, end.Month, end.Day, 0, 0, 0).Add(new TimeSpan(24, 0, 0));
+            return DateTimeAxis.ToDouble(maxDate);
         }
 
         public void SetSeries(List<WaterLevelData> list)

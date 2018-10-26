@@ -52,6 +52,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="GraphQL.Client">
+      <Version>1.0.3</Version>
+    </PackageReference>
     <PackageReference Include="OxyPlot.Xamarin.Forms">
       <Version>1.0.0</Version>
     </PackageReference>

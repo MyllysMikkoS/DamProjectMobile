@@ -3,6 +3,8 @@ using OxyPlot.Axes;
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace DamMobileApp
@@ -12,21 +14,12 @@ namespace DamMobileApp
         private static SingletonWaterFlowModel instance = null;
         private static readonly object padlock = new object();
         public double MinFlow = 0;
-        public double MaxFlow = 100;
-        public double AlertLineValue = 70;
-        public LineSeries AlertLine;
+        public double MaxFlow = 8;
 
         SingletonWaterFlowModel()
         {
             // Init title
             Title = "Water flow";
-
-            // Init alert line
-            AlertLine = new LineSeries
-            {
-                Color = OxyColor.Parse("#ff0000"),
-                Title = "Alert line"
-            };
 
             // Set series
             SetSeries(SingletonWaterFlowDataList.Instance);
@@ -49,12 +42,16 @@ namespace DamMobileApp
 
         public double GetMinDateInDouble()
         {
-            return DateTimeAxis.ToDouble(GlobalDateLimits.Instance.StartDate);
+            DateTime start = GlobalDateLimits.Instance.StartDate;
+            DateTime minDate = new DateTime(start.Year, start.Month, start.Day, 0, 0, 0);
+            return DateTimeAxis.ToDouble(minDate);
         }
 
         public double GetMaxDateInDouble()
         {
-            return DateTimeAxis.ToDouble(GlobalDateLimits.Instance.EndDate);
+            DateTime end = GlobalDateLimits.Instance.EndDate;
+            DateTime maxDate = new DateTime(end.Year, end.Month, end.Day, 0, 0, 0).Add(new TimeSpan(24,0,0));
+            return DateTimeAxis.ToDouble(maxDate);
         }
 
         public void SetSeries(List<WaterFlowData> list)
@@ -78,11 +75,6 @@ namespace DamMobileApp
                 IsZoomEnabled = false
             });
 
-            // Set alert line
-            AlertLine.Points.Clear();
-            AlertLine.Points.Add(new DataPoint(GetMinDateInDouble(), AlertLineValue));
-            AlertLine.Points.Add(new DataPoint(GetMaxDateInDouble(), AlertLineValue));
-
             // Create series with new values
             list.Sort((x, y) => x.Timestamp.CompareTo(y.Timestamp));
             LineSeries series = new LineSeries
@@ -97,7 +89,6 @@ namespace DamMobileApp
             // Update series
             Series.Clear();
             Series.Add(series);
-            Series.Add(AlertLine);
 
             // Update graph UI
             InvalidatePlot(true);
