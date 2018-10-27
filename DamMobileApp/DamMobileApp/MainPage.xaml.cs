@@ -320,8 +320,12 @@ namespace DamMobileApp
                 DateTime startTime = start;
                 DateTime endTime = end;
 
-                startTime = new DateTime(start.Year, start.Month, start.Day, 0, 0, 0);
-                endTime = new DateTime(end.Year, end.Month, end.Day).Add(new TimeSpan(24, 0, 0));
+                // Set timespan - minusSpan (UTC - FINNISH TIME) is to get UTC data relative to finnish time datePickers
+                // e.g. 10/10/2018 00:00:00 - 11/10/2018 00:00:00 FI TIME (+3) is 9/10/2018 21:00:00 - 10/10/2018 21:00:00 UTC TIME
+                DateTime FinlandTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, App.FinlandTimeZone);
+                TimeSpan minusSpan = DateTime.UtcNow - FinlandTime;
+                startTime = new DateTime(start.Year, start.Month, start.Day, 0, 0, 0).Add(minusSpan);
+                endTime = new DateTime(end.Year, end.Month, end.Day).Add(new TimeSpan(24, 0, 0).Add(minusSpan));
 
                 // Clear old datalists
                 SingletonWaterFlowDataList dataListFlow = SingletonWaterFlowDataList.Instance;
