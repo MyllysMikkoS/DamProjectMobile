@@ -7,6 +7,8 @@ namespace DamMobileApp
 {
     public partial class App : Application
     {
+        public static TimeZoneInfo FinlandTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Helsinki");
+
         public App()
         {
             InitializeComponent();

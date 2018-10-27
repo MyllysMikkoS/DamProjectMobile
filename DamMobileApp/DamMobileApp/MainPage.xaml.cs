@@ -17,9 +17,13 @@ namespace DamMobileApp
         public MainPage()
         {
             InitializeComponent();
-
+            Debug.WriteLine("Initializing MAIN PAGE");
             try
             {
+                // Enable loading screen
+                MainLayout.RaiseChild(LoadingView);
+                LoadingViewEnable();
+
                 // Get water data on app start
                 Task.Run(async () => await GetAllWaterDataOnAppStart());
             }
@@ -27,6 +31,24 @@ namespace DamMobileApp
             {
                 Debug.WriteLine("Error: " + e.ToString());
             }
+        }
+
+        public void LoadingViewEnable()
+        {
+            Device.BeginInvokeOnMainThread(() => {
+                LoadingView.IsEnabled = true;
+                LoadingView.IsVisible = true;
+                LoadingSpinner.IsRunning = true;
+            });
+        }
+
+        public void LoadingViewDisable()
+        {
+            Device.BeginInvokeOnMainThread(() => {
+                LoadingView.IsEnabled = false;
+                LoadingView.IsVisible = false;
+                LoadingSpinner.IsRunning = false;
+            });
         }
 
         private void EndDatePicker_DateSelected(object sender, DateChangedEventArgs e)
@@ -41,14 +63,14 @@ namespace DamMobileApp
 
         public void CheckIfAlertIsOn()
         {
-            try { 
+            try {
                 // Do the check
-                if (SingletonWaterLevelDataList.Instance.OrderByDescending(x => x.Timestamp).First().WaterLevel 
+                if (SingletonWaterLevelDataList.Instance.OrderByDescending(x => x.Timestamp).First().WaterLevel
                     >= SingletonWaterLevelModel.Instance.AlertLineValue)
                 {
                     // Display alert
                     Debug.WriteLine("DISPLAYING ALERT");
-                    DisplayAlert("Alert!", "The water level rised over the alert level.", "OK");
+                    DisplayAlert("Alert!", "The water level has passed alert level.", "OK");
                 }
             }
             catch (Exception e)
@@ -112,7 +134,9 @@ namespace DamMobileApp
                 GlobalDateLimits.Instance.EndDate = end;
 
                 // Set maximum date according to current time
-                EndDatePicker.MaximumDate = DateTime.UtcNow;
+                DateTime FinlandTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, App.FinlandTimeZone);
+                TimeSpan span = FinlandTime - DateTime.UtcNow;
+                EndDatePicker.MaximumDate = DateTime.UtcNow.Add(span);
 
                 // Set current values
                 StartDatePicker.Date = GlobalDateLimits.Instance.StartDate;
@@ -157,7 +181,9 @@ namespace DamMobileApp
                 StartDatePicker.MinimumDate = GlobalDateLimits.Instance.FirstDateInDataBase;
 
                 // Set maximum date according to current time
-                EndDatePicker.MaximumDate = DateTime.UtcNow;
+                DateTime FinlandTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, App.FinlandTimeZone);
+                TimeSpan span = FinlandTime - DateTime.UtcNow;
+                EndDatePicker.MaximumDate = DateTime.UtcNow.Add(span);
 
                 // Set current values
                 StartDatePicker.Date = GlobalDateLimits.Instance.StartDate;
@@ -191,6 +217,7 @@ namespace DamMobileApp
             try
             {
                 Debug.WriteLine("GET DATA ON APP START");
+                Device.BeginInvokeOnMainThread(() => { LoadingLabel.Text = "Getting water data..."; });
 
                 // Clear old datalists
                 SingletonWaterFlowDataList dataListFlow = SingletonWaterFlowDataList.Instance;
@@ -209,10 +236,13 @@ namespace DamMobileApp
                     var graphQLResponse = await graphQLClient.PostAsync(WaterFlowDataRequest);
                     var dynamicData = graphQLResponse.Data["water_data_query"];
 
+                    Device.BeginInvokeOnMainThread(() => { LoadingLabel.Text = "Updating graphs..."; });
                     // Add fetched data into datalists
                     foreach (JObject data in dynamicData)
                     {
-                        DateTime time = (new DateTime(1970, 1, 1)).AddMilliseconds(double.Parse(data["timestamp"].ToString()));
+                        DateTime time = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(
+                            (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified)
+                            ).AddMilliseconds(double.Parse(data["timestamp"].ToString())), DateTimeKind.Utc), App.FinlandTimeZone);
                         dataListFlow.Add(new WaterFlowData(
                             // Date
                             time,
@@ -227,6 +257,20 @@ namespace DamMobileApp
                             ));
                     }
                     Debug.WriteLine("GOT WATER DATA, FLOW OBJECTS: " + dataListFlow.Count + " - LEVEL OBJECTS: " + dataListLevel.Count);
+                    Debug.WriteLine("GETTING ALERT LEVEL");
+
+                    var AlertLevelRequest = new GraphQLRequest
+                    {
+                        Query = "{ water_level_alarm{ alarm_level } }"
+                    };
+                    graphQLResponse = await graphQLClient.PostAsync(AlertLevelRequest);
+                    var alertData = graphQLResponse.Data["water_level_alarm"];
+                    JObject alertLvl = alertData;
+
+                    Debug.WriteLine("-------- ALERT LEVEL IS: " + alertLvl["alarm_level"].ToString());
+
+                    // The alarm level is in centimeters in database so dividing by 100 to get value in meters
+                    SingletonWaterLevelModel.Instance.AlertLineValue = double.Parse(alertLvl["alarm_level"].ToString()) / 100;
                 }).ContinueWith((task) =>
                 {
                     // Update plots
@@ -248,6 +292,9 @@ namespace DamMobileApp
                         StartDatePicker.DateSelected += StartDatePicker_DateSelected;
                         EndDatePicker.DateSelected += EndDatePicker_DateSelected;
 
+                        // Disable loading screen
+                        LoadingViewDisable();
+
                         // Check alert
                         CheckIfAlertIsOn();
 
@@ -265,7 +312,10 @@ namespace DamMobileApp
         {
             try
             {
+                // Enable loading screen
+                LoadingViewEnable();
                 Debug.WriteLine("GET WATER DATA: " + start.ToString() + " - " + end.ToString());
+                Device.BeginInvokeOnMainThread(() => { LoadingLabel.Text = "Getting water data..."; });
 
                 DateTime startTime = start;
                 DateTime endTime = end;
@@ -297,10 +347,13 @@ namespace DamMobileApp
                     var graphQLResponse = await graphQLClient.PostAsync(WaterFlowDataRequest);
                     var dynamicData = graphQLResponse.Data["water_data_query"];
 
+                    Device.BeginInvokeOnMainThread(() => { LoadingLabel.Text = "Updating graphs..."; });
                     // Add fetched data into datalists
                     foreach (JObject data in dynamicData)
                     {
-                        DateTime time = (new DateTime(1970, 1, 1)).AddMilliseconds(double.Parse(data["timestamp"].ToString()));
+                        DateTime time = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(
+                            (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified)
+                            ).AddMilliseconds(double.Parse(data["timestamp"].ToString())), DateTimeKind.Utc), App.FinlandTimeZone);
                         dataListFlow.Add(new WaterFlowData(
                             // Date
                             time,
@@ -327,6 +380,8 @@ namespace DamMobileApp
                         SingletonWaterFlowModel.Instance.SetSeries(SingletonWaterFlowDataList.Instance);
                         CreatePlot();
 
+                        // Disable loading screen
+                        LoadingViewDisable();
                         Debug.WriteLine("----- WATER DATA GOT AND UI UPDATED");
                     });
                 });

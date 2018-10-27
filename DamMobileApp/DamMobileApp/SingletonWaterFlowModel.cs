@@ -60,11 +60,18 @@ namespace DamMobileApp
             Axes.Clear();
             Axes.Add(new LinearAxis()
             {
+                Title = "square meters per second",
                 Position = AxisPosition.Left,
                 Minimum = MinFlow,
                 Maximum = MaxFlow,
                 IsPanEnabled = false,
-                IsZoomEnabled = false
+                IsZoomEnabled = false,
+                MajorGridlineColor = OxyColor.Parse("#dddddd"),
+                MajorGridlineThickness = 2,
+                MajorGridlineStyle = LineStyle.Solid,
+                MinorGridlineColor = OxyColor.Parse("#dddddd"),
+                MinorGridlineThickness = 1,
+                MinorGridlineStyle = LineStyle.Solid
             });
             Axes.Add(new DateTimeAxis()
             {
@@ -72,7 +79,11 @@ namespace DamMobileApp
                 Minimum = GetMinDateInDouble(),
                 Maximum = GetMaxDateInDouble(),
                 IsPanEnabled = false,
-                IsZoomEnabled = false
+                IsZoomEnabled = false,
+                MajorGridlineColor = OxyColor.Parse("#dddddd"),
+                MajorGridlineThickness = 2,
+                MajorGridlineStyle = LineStyle.Solid,
+                Angle = 90
             });
 
             // Create series with new values
@@ -90,8 +101,14 @@ namespace DamMobileApp
             Series.Clear();
             Series.Add(series);
 
-            // Update graph UI
-            InvalidatePlot(true);
+            try
+            {
+                InvalidatePlot(true);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message + "\nReinitializing model");
+            }
         }
     }
 }

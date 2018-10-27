@@ -13,9 +13,9 @@ namespace DamMobileApp
     {
         private static SingletonWaterLevelModel instance = null;
         private static readonly object padlock = new object();
-        public double MinLevel = 86.50;
-        public double MaxLevel = 87.30;
-        public double AlertLineValue = 87.16;
+        public double MinLevel = 86.40;
+        public double MaxLevel = 87.60;
+        public double AlertLineValue = 100;
         public LineSeries AlertLine;
 
         SingletonWaterLevelModel()
@@ -69,11 +69,18 @@ namespace DamMobileApp
             Axes.Clear();
             Axes.Add(new LinearAxis()
             {
+                Title = "meters",
                 Position = AxisPosition.Left,
                 Minimum = MinLevel,
                 Maximum = MaxLevel,
                 IsPanEnabled = false,
-                IsZoomEnabled = false
+                IsZoomEnabled = false,
+                MajorGridlineColor = OxyColor.Parse("#dddddd"),
+                MajorGridlineThickness = 2,
+                MajorGridlineStyle = LineStyle.Solid,
+                MinorGridlineColor = OxyColor.Parse("#dddddd"),
+                MinorGridlineThickness = 1,
+                MinorGridlineStyle = LineStyle.Solid
             });
             Axes.Add(new DateTimeAxis()
             {
@@ -81,7 +88,11 @@ namespace DamMobileApp
                 Minimum = GetMinDateInDouble(),
                 Maximum = GetMaxDateInDouble(),
                 IsPanEnabled = false,
-                IsZoomEnabled = false
+                IsZoomEnabled = false,
+                MajorGridlineColor = OxyColor.Parse("#dddddd"),
+                MajorGridlineThickness = 2,
+                MajorGridlineStyle = LineStyle.Solid,
+                Angle = 90
             });
 
             // Set alert line
@@ -106,7 +117,14 @@ namespace DamMobileApp
             Series.Add(AlertLine);
 
             // Update graph UI
-            InvalidatePlot(true);
+            try
+            {
+                InvalidatePlot(true);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message + "\nReinitializing model");
+            }
         }
     }
 }

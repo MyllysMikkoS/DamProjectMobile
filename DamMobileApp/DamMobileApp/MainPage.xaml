@@ -9,6 +9,41 @@
         HorizontalOptions="Fill"
         VerticalOptions="Fill">
         <RelativeLayout
+            x:Name="LoadingView"
+            BackgroundColor="SlateGray"
+            IsVisible="True"
+            Opacity="0.7"
+            RelativeLayout.HeightConstraint="{ConstraintExpression
+                Type=RelativeToParent, Property=Height, Factor=1.0}"
+            RelativeLayout.WidthConstraint="{ConstraintExpression
+                Type=RelativeToParent, Property=Width, Factor=1.0}">
+            <ActivityIndicator 
+                x:Name="LoadingSpinner"
+                IsRunning="True"
+                RelativeLayout.HeightConstraint="{ConstraintExpression
+                    Type=RelativeToParent, Property=Height, Factor=0.3}"
+                RelativeLayout.WidthConstraint="{ConstraintExpression
+                    Type=RelativeToParent, Property=Width, Factor=0.3}"
+                RelativeLayout.XConstraint="{ConstraintExpression
+                    Type=RelativeToParent, Property=Width, Factor=0.35}"
+                RelativeLayout.YConstraint="{ConstraintExpression
+                    Type=RelativeToParent, Property=Height, Factor=0.20}"/>
+            <Label 
+                x:Name="LoadingLabel"
+                Text="Loading..."
+                FontSize="Large"
+                TextColor="Black"
+                HorizontalTextAlignment="Center"
+                RelativeLayout.XConstraint="{ConstraintExpression
+                    Type=RelativeToParent, Property=Width, Factor=0.0}"
+                RelativeLayout.YConstraint="{ConstraintExpression
+                    Type=RelativeToParent, Property=Height, Factor=0.55}"
+                RelativeLayout.WidthConstraint="{ConstraintExpression
+                    Type=RelativeToParent, Property=Width, Factor=1.0}"
+                />
+        </RelativeLayout>
+        
+        <RelativeLayout
             x:Name="PlotLayout"
             HorizontalOptions="Fill"
             RelativeLayout.HeightConstraint="{ConstraintExpression
