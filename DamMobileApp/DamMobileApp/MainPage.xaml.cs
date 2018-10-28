@@ -14,6 +14,8 @@ namespace DamMobileApp
 {
     public partial class MainPage : ContentPage
     {
+        bool DatePickerUpdateFlag = false;
+
         public MainPage()
         {
             InitializeComponent();
@@ -53,12 +55,14 @@ namespace DamMobileApp
 
         private void EndDatePicker_DateSelected(object sender, DateChangedEventArgs e)
         {
-            Task.Run(async () => { await GetWaterData(StartDatePicker.Date, e.NewDate); });
+            if (!DatePickerUpdateFlag)
+                Task.Run(async () => { await GetWaterData(StartDatePicker.Date, e.NewDate); });
         }
 
         private void StartDatePicker_DateSelected(object sender, DateChangedEventArgs e)
         {
-            Task.Run(async () => { await GetWaterData(e.NewDate, EndDatePicker.Date); });
+            if (!DatePickerUpdateFlag)
+                Task.Run(async () => { await GetWaterData(e.NewDate, EndDatePicker.Date); });
         }
 
         public void CheckIfAlertIsOn()
@@ -114,6 +118,9 @@ namespace DamMobileApp
         {
             try
             {
+                // Updating dates
+                DatePickerUpdateFlag = true;
+
                 Debug.WriteLine("SETTING DATES AND TIMES");
                 DateTime newestFlowDate = SingletonWaterFlowDataList.Instance.OrderByDescending(x => x.Timestamp).First().Timestamp;
                 DateTime oldestFlowDate = SingletonWaterFlowDataList.Instance.OrderByDescending(x => x.Timestamp).Last().Timestamp;
@@ -136,6 +143,7 @@ namespace DamMobileApp
                 // Set maximum date according to current time
                 DateTime FinlandTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, App.FinlandTimeZone);
                 TimeSpan span = FinlandTime - DateTime.UtcNow;
+                Debug.WriteLine("-------------------------------------------------- " + span.ToString() + " ---- " + GlobalDateLimits.Instance.EndDate.ToString());
                 EndDatePicker.MaximumDate = DateTime.UtcNow.Add(span);
 
                 // Set current values
@@ -146,6 +154,9 @@ namespace DamMobileApp
                 DateTime EndDateMin = new DateTime(start.Year, start.Month, start.Day);
                 StartDatePicker.MaximumDate = StartDateMax;
                 EndDatePicker.MinimumDate = EndDateMin;
+
+                // End updating datepickers
+                DatePickerUpdateFlag = false;
             }
             catch (Exception e)
             {
@@ -157,6 +168,9 @@ namespace DamMobileApp
         {
             try
             {
+                // Updating dates
+                DatePickerUpdateFlag = true;
+
                 Debug.WriteLine("APP START DATES");
                 DateTime newestFlowDate = SingletonWaterFlowDataList.Instance.OrderByDescending(x => x.Timestamp).First().Timestamp;
                 DateTime oldestFlowDate = SingletonWaterFlowDataList.Instance.OrderByDescending(x => x.Timestamp).Last().Timestamp;
@@ -193,6 +207,9 @@ namespace DamMobileApp
                 DateTime EndDateMin = new DateTime(start.Year, start.Month, start.Day);
                 StartDatePicker.MaximumDate = StartDateMax;
                 EndDatePicker.MinimumDate = EndDateMin;
+
+                // End updating datepickers
+                DatePickerUpdateFlag = false;
             }
             catch (Exception e)
             {
@@ -237,12 +254,15 @@ namespace DamMobileApp
                     var dynamicData = graphQLResponse.Data["water_data_query"];
 
                     Device.BeginInvokeOnMainThread(() => { LoadingLabel.Text = "Updating graphs..."; });
+
+                    // Get timeDifference
+                    DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, App.FinlandTimeZone);
+                    TimeSpan timeDifference = localTime - DateTime.UtcNow;
+
                     // Add fetched data into datalists
                     foreach (JObject data in dynamicData)
                     {
-                        DateTime time = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(
-                            (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified)
-                            ).AddMilliseconds(double.Parse(data["timestamp"].ToString())), DateTimeKind.Utc), App.FinlandTimeZone);
+                        DateTime time = new DateTime(1970, 1, 1).AddMilliseconds(double.Parse(data["timestamp"].ToString())).Add(timeDifference);
                         dataListFlow.Add(new WaterFlowData(
                             // Date
                             time,
@@ -321,11 +341,11 @@ namespace DamMobileApp
                 DateTime endTime = end;
 
                 // Set timespan - minusSpan (UTC - FINNISH TIME) is to get UTC data relative to finnish time datePickers
-                // e.g. 10/10/2018 00:00:00 - 11/10/2018 00:00:00 FI TIME (+3) is 9/10/2018 21:00:00 - 10/10/2018 21:00:00 UTC TIME
+                // e.g. 10/10/2018 00:00:00 - 11/10/2018 00:00:00 FI TIME (+2) is 9/10/2018 22:00:00 - 10/10/2018 22:00:00 UTC TIME
                 DateTime FinlandTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, App.FinlandTimeZone);
                 TimeSpan minusSpan = DateTime.UtcNow - FinlandTime;
                 startTime = new DateTime(start.Year, start.Month, start.Day, 0, 0, 0).Add(minusSpan);
-                endTime = new DateTime(end.Year, end.Month, end.Day).Add(new TimeSpan(24, 0, 0).Add(minusSpan));
+                endTime = new DateTime(end.Year, end.Month, end.Day).Add(new TimeSpan(23, 59, 59).Add(minusSpan));
 
                 // Clear old datalists
                 SingletonWaterFlowDataList dataListFlow = SingletonWaterFlowDataList.Instance;
@@ -352,12 +372,15 @@ namespace DamMobileApp
                     var dynamicData = graphQLResponse.Data["water_data_query"];
 
                     Device.BeginInvokeOnMainThread(() => { LoadingLabel.Text = "Updating graphs..."; });
+
+                    // Get timeDifference
+                    DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, App.FinlandTimeZone);
+                    TimeSpan timeDifference = localTime - DateTime.UtcNow;
+
                     // Add fetched data into datalists
                     foreach (JObject data in dynamicData)
                     {
-                        DateTime time = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(
-                            (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Unspecified)
-                            ).AddMilliseconds(double.Parse(data["timestamp"].ToString())), DateTimeKind.Utc), App.FinlandTimeZone);
+                        DateTime time = new DateTime(1970, 1, 1).AddMilliseconds(double.Parse(data["timestamp"].ToString())).Add(timeDifference);
                         dataListFlow.Add(new WaterFlowData(
                             // Date
                             time,
@@ -372,6 +395,8 @@ namespace DamMobileApp
                             ));
                     }
                     Debug.WriteLine("GOT WATER DATA, FLOW OBJECTS: " + dataListFlow.Count + " - LEVEL OBJECTS: " + dataListLevel.Count);
+                    DateTime newestLevelDate = SingletonWaterLevelDataList.Instance.OrderByDescending(x => x.Timestamp).First().Timestamp;
+                    Debug.WriteLine("-------------------------------------- NEWEST DATE ON LIST: " + newestLevelDate.ToString());
                 }).ContinueWith((task) =>
                 {
                 // Update plots

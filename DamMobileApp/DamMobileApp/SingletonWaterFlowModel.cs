@@ -56,50 +56,57 @@ namespace DamMobileApp
 
         public void SetSeries(List<WaterFlowData> list)
         {
-            // Init axes
-            Axes.Clear();
-            Axes.Add(new LinearAxis()
+            try
             {
-                Title = "square meters per second",
-                Position = AxisPosition.Left,
-                Minimum = MinFlow,
-                Maximum = MaxFlow,
-                IsPanEnabled = false,
-                IsZoomEnabled = false,
-                MajorGridlineColor = OxyColor.Parse("#dddddd"),
-                MajorGridlineThickness = 2,
-                MajorGridlineStyle = LineStyle.Solid,
-                MinorGridlineColor = OxyColor.Parse("#dddddd"),
-                MinorGridlineThickness = 1,
-                MinorGridlineStyle = LineStyle.Solid
-            });
-            Axes.Add(new DateTimeAxis()
-            {
-                Position = AxisPosition.Bottom,
-                Minimum = GetMinDateInDouble(),
-                Maximum = GetMaxDateInDouble(),
-                IsPanEnabled = false,
-                IsZoomEnabled = false,
-                MajorGridlineColor = OxyColor.Parse("#dddddd"),
-                MajorGridlineThickness = 2,
-                MajorGridlineStyle = LineStyle.Solid,
-                Angle = 90
-            });
+                // Init axes
+                Axes.Clear();
+                Axes.Add(new LinearAxis()
+                {
+                    Title = "square meters per second",
+                    Position = AxisPosition.Left,
+                    Minimum = MinFlow,
+                    Maximum = MaxFlow,
+                    IsPanEnabled = false,
+                    IsZoomEnabled = false,
+                    MajorGridlineColor = OxyColor.Parse("#dddddd"),
+                    MajorGridlineThickness = 2,
+                    MajorGridlineStyle = LineStyle.Solid,
+                    MinorGridlineColor = OxyColor.Parse("#dddddd"),
+                    MinorGridlineThickness = 1,
+                    MinorGridlineStyle = LineStyle.Solid
+                });
+                Axes.Add(new DateTimeAxis()
+                {
+                    Position = AxisPosition.Bottom,
+                    Minimum = GetMinDateInDouble(),
+                    Maximum = GetMaxDateInDouble(),
+                    IsPanEnabled = false,
+                    IsZoomEnabled = false,
+                    MajorGridlineColor = OxyColor.Parse("#dddddd"),
+                    MajorGridlineThickness = 2,
+                    MajorGridlineStyle = LineStyle.Solid,
+                    Angle = 90
+                });
 
-            // Create series with new values
-            list.Sort((x, y) => x.Timestamp.CompareTo(y.Timestamp));
-            LineSeries series = new LineSeries
-            {
-                Color = OxyColor.Parse("#0000ff")
-            };
-            foreach (WaterFlowData data in list)
-            {
-                series.Points.Add(new DataPoint(DateTimeAxis.ToDouble(data.Timestamp), data.WaterFlow));
+                // Create series with new values
+                list.Sort((x, y) => x.Timestamp.CompareTo(y.Timestamp));
+                LineSeries series = new LineSeries
+                {
+                    Color = OxyColor.Parse("#0000ff")
+                };
+                foreach (WaterFlowData data in list)
+                {
+                    series.Points.Add(new DataPoint(DateTimeAxis.ToDouble(data.Timestamp), data.WaterFlow));
+                }
+
+                // Update series
+                Series.Clear();
+                Series.Add(series);
             }
-
-            // Update series
-            Series.Clear();
-            Series.Add(series);
+            catch (Exception e)
+            {
+                Debug.WriteLine("Error: " + e.ToString());
+            }
 
             try
             {

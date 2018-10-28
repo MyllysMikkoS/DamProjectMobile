@@ -65,56 +65,63 @@ namespace DamMobileApp
 
         public void SetSeries(List<WaterLevelData> list)
         {
-            // Init axes
-            Axes.Clear();
-            Axes.Add(new LinearAxis()
+            try
             {
-                Title = "meters",
-                Position = AxisPosition.Left,
-                Minimum = MinLevel,
-                Maximum = MaxLevel,
-                IsPanEnabled = false,
-                IsZoomEnabled = false,
-                MajorGridlineColor = OxyColor.Parse("#dddddd"),
-                MajorGridlineThickness = 2,
-                MajorGridlineStyle = LineStyle.Solid,
-                MinorGridlineColor = OxyColor.Parse("#dddddd"),
-                MinorGridlineThickness = 1,
-                MinorGridlineStyle = LineStyle.Solid
-            });
-            Axes.Add(new DateTimeAxis()
-            {
-                Position = AxisPosition.Bottom,
-                Minimum = GetMinDateInDouble(),
-                Maximum = GetMaxDateInDouble(),
-                IsPanEnabled = false,
-                IsZoomEnabled = false,
-                MajorGridlineColor = OxyColor.Parse("#dddddd"),
-                MajorGridlineThickness = 2,
-                MajorGridlineStyle = LineStyle.Solid,
-                Angle = 90
-            });
+                // Init axes
+                Axes.Clear();
+                Axes.Add(new LinearAxis()
+                {
+                    Title = "meters",
+                    Position = AxisPosition.Left,
+                    Minimum = MinLevel,
+                    Maximum = MaxLevel,
+                    IsPanEnabled = false,
+                    IsZoomEnabled = false,
+                    MajorGridlineColor = OxyColor.Parse("#dddddd"),
+                    MajorGridlineThickness = 2,
+                    MajorGridlineStyle = LineStyle.Solid,
+                    MinorGridlineColor = OxyColor.Parse("#dddddd"),
+                    MinorGridlineThickness = 1,
+                    MinorGridlineStyle = LineStyle.Solid
+                });
+                Axes.Add(new DateTimeAxis()
+                {
+                    Position = AxisPosition.Bottom,
+                    Minimum = GetMinDateInDouble(),
+                    Maximum = GetMaxDateInDouble(),
+                    IsPanEnabled = false,
+                    IsZoomEnabled = false,
+                    MajorGridlineColor = OxyColor.Parse("#dddddd"),
+                    MajorGridlineThickness = 2,
+                    MajorGridlineStyle = LineStyle.Solid,
+                    Angle = 90
+                });
 
-            // Set alert line
-            AlertLine.Points.Clear();
-            AlertLine.Points.Add(new DataPoint(GetMinDateInDouble(), AlertLineValue));
-            AlertLine.Points.Add(new DataPoint(GetMaxDateInDouble(), AlertLineValue));
+                // Set alert line
+                AlertLine.Points.Clear();
+                AlertLine.Points.Add(new DataPoint(GetMinDateInDouble(), AlertLineValue));
+                AlertLine.Points.Add(new DataPoint(GetMaxDateInDouble(), AlertLineValue));
 
-            // Create series with new values
-            list.Sort((x, y) => x.Timestamp.CompareTo(y.Timestamp));
-            LineSeries series = new LineSeries
-            {
-                Color = OxyColor.Parse("#0000ff")
-            };
-            foreach (WaterLevelData data in list)
-            {
-                series.Points.Add(new DataPoint(DateTimeAxis.ToDouble(data.Timestamp), data.WaterLevel));
+                // Create series with new values
+                list.Sort((x, y) => x.Timestamp.CompareTo(y.Timestamp));
+                LineSeries series = new LineSeries
+                {
+                    Color = OxyColor.Parse("#0000ff")
+                };
+                foreach (WaterLevelData data in list)
+                {
+                    series.Points.Add(new DataPoint(DateTimeAxis.ToDouble(data.Timestamp), data.WaterLevel));
+                }
+
+                // Update series
+                Series.Clear();
+                Series.Add(series);
+                Series.Add(AlertLine);
             }
-
-            // Update series
-            Series.Clear();
-            Series.Add(series);
-            Series.Add(AlertLine);
+            catch (Exception e)
+            {
+                Debug.WriteLine("Error: " + e.ToString());
+            }
 
             // Update graph UI
             try
